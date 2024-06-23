@@ -1,0 +1,110 @@
+clc
+clear all
+close all
+
+a=input("Ingrese la coordena x del centro de la celda principal: ");
+b=input("Ingrese la coordena y del centro de la celda principal: ");
+c=input("Ingresa el valor del lado del hexagono (km): ");
+
+alpha = 10;
+apotema=sqrt(3).*c/2;
+P_tx = 10*log10(10*1000);
+G_tx = 12;
+G_rx = 2;
+desvia= 7;
+ad = makedist('Normal', 'mu', 0, 'sigma',desvia);
+[x,y,rx,ry]=DibujarHexagonos_y_usuarios(a,b,c);
+suma_para_Ptotal=P_tx + G_tx + G_rx;
+
+for i=1:7
+    for j=1:length(rx{i})
+        for z=1:7
+            if z==1
+d=sqrt((rx{i}(j)-a).^2 + (ry{i}(j)-b).^2).*1000;
+            else
+aaux=2*apotema*cosd(60*(z-2)+30);
+baux=2*apotema*sind(60*(z-2)+30);
+d=sqrt((rx{i}(j)-(a+aaux)).^2 + (ry{i}(j)-(b+baux)).^2).*1000;
+            end
+Potencias{i}(j,z)=suma_para_Ptotal-10*alpha*log10(d)-random(ad);
+        end
+    end
+end
+Usuarios_ordenados{7}=0;
+p=length(rx{i});
+for i=1:7
+for j=1:p
+[P_min, zz]=max(Potencias{i}(j,:));
+Usuarios_ordenados{zz}(end+1,[1:9])=[rx{i}(j) ry{i}(j) Potencias{i}(j, [1:7])];
+end
+end
+Usuarios_ordenados{7}(1,:)=[];
+
+figure()
+for i=7:-1:1
+plot(x(i,:),y(i,:),'LineWidth',2)
+grid on
+hold on
+plot(rx{i}(:),ry{i}(:),'.')
+end
+title('Usuarios de cada estacion base considerando únicamente la distancia')
+figure()
+subplot(2,1,1)
+for i=7:-1:1
+plot(x(i,:),y(i,:),'LineWidth',2)
+grid on
+hold on
+plot(Usuarios_ordenados{i}(:,1),Usuarios_ordenados{i}(:,2),'.')
+end
+title({'Usuarios de cada estacion base considerando la potencia recibida por el modelo lognormal';'Considerando \alpha = 10'})
+
+subplot(2,1,2)
+for i=7:-1:1
+plot(x(i,:),y(i,:),'LineWidth',2)
+grid on
+hold on
+end
+plot(Usuarios_ordenados{1}(:,1),Usuarios_ordenados{1}(:,2),'.')
+title({'Usuarios de la estacion base central considerando la potencia recibida por el modelo lognormal';'Considerando \alpha = 10'})
+
+function [vectores_x, vectores_y, randomx, randomy]= DibujarHexagonos_y_usuarios(a,b,c)
+apotema=sqrt(3).*c/2;
+vectores_x=zeros(7,7);
+vectores_y=zeros(7,7);
+L = linspace(0,2*pi,7);
+
+for i=1:7
+    if i==1
+aaux=0;
+baux=0;
+    else
+aaux=2*apotema*cosd(60*(i-2)+30);
+baux=2*apotema*sind(60*(i-2)+30);
+    end
+vectores_x(i,:) = a+aaux+c*cos(L);
+vectores_y(i,:) = b+baux+c*sin(L);
+
+rx_aux = (a+aaux-c) + (a+aaux+c-a-aaux+c)*rand(500,1);
+ry_aux = (b+baux-apotema) + (b+baux+apotema-b-baux+apotema)*rand(500,1);
+p = inpolygon(rx_aux,ry_aux,vectores_x(i,:),vectores_y(i,:));
+rx_aux = rx_aux(p);
+ry_aux = ry_aux(p);
+
+randomx{i}(:)=rx_aux;
+randomy{i}(:)=ry_aux;
+
+while(length(randomx{i}(:))< 500)
+p=false;
+
+while(p==false)
+rx_aux = (a+aaux-c) + (a+aaux+c-a-aaux+c)*rand(1,1);
+ry_aux = (b+baux-apotema) + (b+baux+apotema-b-baux+apotema)*rand(1,1);
+p = inpolygon(rx_aux,ry_aux,vectores_x(i,:),vectores_y(i,:));
+end
+
+randomx{i}(end+1)=rx_aux;
+randomy{i}(end+1)=ry_aux;
+
+end
+end
+end
