@@ -94,13 +94,16 @@ for i = 1:length(indices_aleatorios)
     fprintf('Base Asociada: %d\n\n', base_asociada);
 end
 
+% Definir colores para los hexágonos
+colores = {'r', 'g', 'b', 'c', 'm', 'y', 'k'};
+
 % Gráfica de los hexágonos y usuarios
 figure(1)
 for i = 7:-1:1
-    plot(x(i, :), y(i, :), 'LineWidth', 2)
+    plot(x(i, :), y(i, :), 'LineWidth', 2, 'Color', colores{i})
     grid on
     hold on
-    plot(rx{i}(:), ry{i}(:), '.')
+    plot(rx{i}(:), ry{i}(:), '.', 'Color', colores{i})
 end
 title('Usuarios de cada estación base considerando únicamente la distancia')
 
@@ -108,10 +111,10 @@ title('Usuarios de cada estación base considerando únicamente la distancia')
 figure(2)
 subplot(2, 1, 1)
 for i = 7:-1:1
-    plot(x(i, :), y(i, :), 'LineWidth', 2)
+    plot(x(i, :), y(i, :), 'LineWidth', 2, 'Color', colores{i})
     grid on
     hold on
-    plot(Usuarios_ordenados{i}(:, 1), Usuarios_ordenados{i}(:, 2), '.')
+    plot(Usuarios_ordenados{i}(:, 1), Usuarios_ordenados{i}(:, 2), '.', 'Color', colores{i})
 end
 plot(usuarios_resaltados(:, 1), usuarios_resaltados(:, 2), 'ro', 'MarkerSize', 10, 'LineWidth', 2)
 title({'Usuarios de cada estación base considerando la potencia recibida por el modelo lognormal'; 'Considerando \alpha = 10'})
@@ -119,11 +122,11 @@ title({'Usuarios de cada estación base considerando la potencia recibida por el
 % Gráfica con usuarios de la estación base central
 subplot(2, 1, 2)
 for i = 7:-1:1
-    plot(x(i, :), y(i, :), 'LineWidth', 2)
+    plot(x(i, :), y(i, :), 'LineWidth', 2, 'Color', colores{i})
     grid on
     hold on
 end
-plot(Usuarios_ordenados{1}(:, 1), Usuarios_ordenados{1}(:, 2), '.')
+plot(Usuarios_ordenados{1}(:, 1), Usuarios_ordenados{1}(:, 2), '.', 'Color', colores{1})
 title({'Usuarios de la estación base central considerando la potencia recibida por el modelo lognormal'; 'Considerando \alpha = 10'})
 
 function [vectores_x, vectores_y, randomx, randomy] = DibujarHexagonos_y_usuarios(a, b, c, n_usuarios)
