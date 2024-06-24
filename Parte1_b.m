@@ -1,116 +1,130 @@
-clc;
-clear all;
-close all;
+clc
+clear all
+close all
 
-% Definir coordenadas del centro de la celda principal
-a = 0;
-b = 0;
-
-% Definir el lado del hexágono en km
-c = 3;
-
-% Solicitar al usuario la cantidad de usuarios por hexágono
-d = input("Ingresa la cantidad de usuarios por hexágono: ");
+% Definición de las coordenadas del centro de la celda principal
+a = 0; % Coordenada x del centro
+b = 0; % Coordenada y del centro
+c = input("Ingresa el valor del lado del hexagono (km): "); % Valor del lado del hexágono
+n_usuarios = input("Ingresa la cantidad de usuarios por celda: "); % Cantidad de usuarios por celda
 
 % Exponente de pérdidas por distancia
 alpha = 10;
 
-% Desviación estándar de pérdidas por ensombrecimiento
+% Cálculo de apotema de los hexágonos
+apotema = (sqrt(3) * c) / 2;
+
+% Cálculo de potencia de los usuarios
+P_tx = 10 * log10(10 * 1000); % Potencia de transmisión en dBm
+G_tx = 12; % Ganancia de transmisión en dB
+G_rx = 2; % Ganancia de recepción en dB
+
+% Desviación estándar de pérdidas por ensombrecimiento (Variable aleatoria)
 desvia = 7;
 ad = makedist('Normal', 'mu', 0, 'sigma', desvia);
 
-% Calculo del apotema del hexágono
-apotema = (sqrt(3) * c) / 2;
+% Dibujar hexágonos y usuarios
+[x, y, rx, ry] = DibujarHexagonos_y_usuarios(a, b, c, n_usuarios);
 
-% Función para dibujar hexágonos y generar usuarios
-[x, y, rx, ry, centers] = DibujarHexagonos_y_usuarios(a, b, c, d);
+% Suma de potencias para cálculo total
+suma_para_Ptotal = P_tx + G_tx + G_rx;
 
-% Colores para los hexágonos
-colors = lines(7); % Utiliza la paleta de colores 'lines' para tener colores distintos
-
-% Graficar los hexágonos y los usuarios
-figure();
-hold on;
-grid on;
-for i = 1:length(centers)
-    plot(x{i}, y{i}, 'Color', colors(i, :), 'LineWidth', 2); % Graficar cada hexágono con un color diferente
-    plot(rx{i}, ry{i}, 'x', 'Color', colors(i, :)); % Graficar los usuarios en cada hexágono con el mismo color
-    plot(centers(i, 1), centers(i, 2), 'x', 'MarkerSize', 10, 'LineWidth', 2, 'Color', colors(i, :)); % Marcar el centro de cada hexágono
-end
-title('Usuarios dentro de los hexágonos');
-xlabel('Eje X');
-ylabel('Eje Y');
-legend('Hexágonos', 'Usuarios', 'Centros');
-
-% Calcular y mostrar pérdidas de señal
-figure();
-hold on;
-grid on;
-for i = 1:length(centers)
+% Cálculo de potencias de los usuarios en cada celda
+for i = 1:7
     for j = 1:length(rx{i})
-        d_ij = sqrt((rx{i}(j) - centers(i, 1))^2 + (ry{i}(j) - centers(i, 2))^2);
-        Omega_ij = random(ad);
-        L_ij = 10 * alpha * log10(d_ij) + Omega_ij;
-        plot(d_ij, L_ij, 'o', 'Color', colors(i, :));
+        for z = 1:7
+            if z == 1
+                % Distancia al centro de la celda principal
+                d = sqrt((rx{i}(j) - a)^2 + (ry{i}(j) - b)^2) * 1000;
+            else
+                % Distancia a las celdas vecinas
+                aaux = 2 * apotema * cosd(60 * (z - 2) + 30);
+                baux = 2 * apotema * sind(60 * (z - 2) + 30);
+                d = sqrt((rx{i}(j) - (a + aaux))^2 + (ry{i}(j) - (b + baux))^2) * 1000;
+            end
+            % Cálculo de la pérdida
+            L_i_k = 10 * alpha * log10(d) + random(ad);
+            % Cálculo de la potencia
+            Potencias{i}(j, z) = suma_para_Ptotal - L_i_k;
+        end
     end
 end
-title('Pérdidas de señal según el modelo lognormal');
-xlabel('Distancia (km)');
-ylabel('Pérdida de señal (dB)');
-legend('Pérdidas de señal por hexágono');
 
-% Función para dibujar hexágonos y generar usuarios
-function [vectores_x, vectores_y, randomx, randomy, centers] = DibujarHexagonos_y_usuarios(a, b, c, d)
+% Ordenar usuarios según la potencia recibida
+Usuarios_ordenados = cell(1, 7);
+p = length(rx{1});
+for i = 1:7
+    for j = 1:p
+        [P_min, zz] = max(Potencias{i}(j, :));
+        Usuarios_ordenados{zz}(end + 1, 1:9) = [rx{i}(j) ry{i}(j) Potencias{i}(j, :)];
+    end
+end
+Usuarios_ordenados{7}(1, :) = [];
+
+% Gráfica de los hexágonos y usuarios
+figure(1)
+for i = 7:-1:1
+    plot(x(i, :), y(i, :), 'LineWidth', 2)
+    grid on
+    hold on
+    plot(rx{i}(:), ry{i}(:), '.')
+end
+title('Usuarios de cada estación base considerando únicamente la distancia')
+
+% Gráfica con usuarios dispersos
+figure(2)
+subplot(2, 1, 1)
+for i = 7:-1:1
+    plot(x(i, :), y(i, :), 'LineWidth', 2)
+    grid on
+    hold on
+    plot(Usuarios_ordenados{i}(:, 1), Usuarios_ordenados{i}(:, 2), '.')
+end
+title({'Usuarios de cada estación base considerando la potencia recibida por el modelo lognormal'; 'Considerando \alpha = 10'})
+
+% Gráfica con usuarios de la estación base central
+subplot(2, 1, 2)
+for i = 7:-1:1
+    plot(x(i, :), y(i, :), 'LineWidth', 2)
+    grid on
+    hold on
+end
+plot(Usuarios_ordenados{1}(:, 1), Usuarios_ordenados{1}(:, 2), '.')
+title({'Usuarios de la estación base central considerando la potencia recibida por el modelo lognormal'; 'Considerando \alpha = 10'})
+
+function [vectores_x, vectores_y, randomx, randomy] = DibujarHexagonos_y_usuarios(a, b, c, n_usuarios)
     apotema = sqrt(3) * c / 2;
+    vectores_x = zeros(7, 7);
+    vectores_y = zeros(7, 7);
     L = linspace(0, 2 * pi, 7);
 
-    % Centros de los hexágonos
-    centers = [
-        a, b;
-        a + 2 * apotema * cosd(30), b + 2 * apotema * sind(30);
-        a + 2 * apotema * cosd(90), b + 2 * apotema * sind(90);
-        a + 2 * apotema * cosd(150), b + 2 * apotema * sind(150);
-        a + 2 * apotema * cosd(210), b + 2 * apotema * sind(210);
-        a + 2 * apotema * cosd(270), b + 2 * apotema * sind(270);
-        a + 2 * apotema * cosd(330), b + 2 * apotema * sind(330)
-    ];
-
-    % Inicializar variables de salida
-    vectores_x = cell(1, 7);
-    vectores_y = cell(1, 7);
-    randomx = cell(1, 7);
-    randomy = cell(1, 7);
-
-    % Generar hexágonos y usuarios aleatorios
     for i = 1:7
-        a_center = centers(i, 1);
-        b_center = centers(i, 2);
-        vectores_x{i} = a_center + c * cos(L);
-        vectores_y{i} = b_center + c * sin(L);
-
-        % Generar d usuarios aleatorios dentro del hexágono
-        [rx, ry] = GenerarUsuariosHexagono(a_center, b_center, c, apotema, d, vectores_x{i}, vectores_y{i});
-        randomx{i} = rx;
-        randomy{i} = ry;
-    end
-end
-
-% Función para generar usuarios aleatorios dentro de un hexágono
-function [rx, ry] = GenerarUsuariosHexagono(a_center, b_center, c, apotema, d, vectores_x, vectores_y)
-    rx_aux = (a_center - c) + (2 * c) * rand(d, 1);
-    ry_aux = (b_center - apotema) + (2 * apotema) * rand(d, 1);
-    p = inpolygon(rx_aux, ry_aux, vectores_x, vectores_y);
-    rx = rx_aux(p);
-    ry = ry_aux(p);
-
-    while length(rx) < d
-        p = false;
-        while ~p
-            rx_aux = (a_center - c) + (2 * c) * rand(1, 1);
-            ry_aux = (b_center - apotema) + (2 * apotema) * rand(1, 1);
-            p = inpolygon(rx_aux, ry_aux, vectores_x, vectores_y);
+        if i == 1
+            aaux = 0;
+            baux = 0;
+        else
+            aaux = 2 * apotema * cosd(60 * (i - 2) + 30);
+            baux = 2 * apotema * sind(60 * (i - 2) + 30);
         end
-        rx(end + 1) = rx_aux;
-        ry(end + 1) = ry_aux;
+        vectores_x(i, :) = a + aaux + c * cos(L);
+        vectores_y(i, :) = b + baux + c * sin(L);
+
+        rx_aux = (a + aaux - c) + (a + aaux + c - a - aaux + c) * rand(n_usuarios, 1);
+        ry_aux = (b + baux - apotema) + (b + baux + apotema - b - baux + apotema) * rand(n_usuarios, 1);
+        p = inpolygon(rx_aux, ry_aux, vectores_x(i, :), vectores_y(i, :));
+        rx_aux = rx_aux(p);
+        ry_aux = ry_aux(p);
+
+        while length(rx_aux) < n_usuarios
+            new_rx_aux = (a + aaux - c) + (a + aaux + c - a - aaux + c) * rand(1, 1);
+            new_ry_aux = (b + baux - apotema) + (b + baux + apotema - b - baux + apotema) * rand(1, 1);
+            if inpolygon(new_rx_aux, new_ry_aux, vectores_x(i, :), vectores_y(i, :))
+                rx_aux(end + 1) = new_rx_aux;
+                ry_aux(end + 1) = new_ry_aux;
+            end
+        end
+
+        randomx{i} = rx_aux;
+        randomy{i} = ry_aux;
     end
 end

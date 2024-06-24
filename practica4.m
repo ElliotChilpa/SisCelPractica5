@@ -10,7 +10,7 @@ c = input("Ingresa el valor del lado del hexagono (km): ");
 %d = input("Ingresa la cantidad de usuarios por hexágono: ");
 
 % Exponente de perdidas por distancia
-alpha = 10;
+alpha = 7;
 
 % Calculo de apotema de los hexagonos
 apotema = (sqrt(3).*c)/2;
