@@ -7,26 +7,18 @@ close all
 a = 0;
 b = 0;
 c = input("Ingresa el valor del lado del hexagono (km): ");
-%d = input("Ingresa la cantidad de usuarios por hexágono: ");
 
 % Exponente de perdidas por distancia
 alpha = 10;
 
 % Calculo de apotema de los hexagonos
-apotema = (sqrt(3).*c)/2;
-
-% Calculo de potencia de los ususarios
+apotema=sqrt(3).*c/2;
 P_tx = 10*log10(10*1000);
 G_tx = 12;
 G_rx = 2;
-
-% Variable desviacion estandar de perdidas por ensobrecimiento "Variable aleatoria"
 desvia= 7;
 ad = makedist('Normal', 'mu', 0, 'sigma',desvia);
-
-
 [x,y,rx,ry]=DibujarHexagonos_y_usuarios(a,b,c);
-
 suma_para_Ptotal=P_tx + G_tx + G_rx;
 
 for i=1:7
@@ -53,7 +45,7 @@ end
 end
 Usuarios_ordenados{7}(1,:)=[];
 
-figure(1)
+figure()
 for i=7:-1:1
 plot(x(i,:),y(i,:),'LineWidth',2)
 grid on
@@ -61,9 +53,7 @@ hold on
 plot(rx{i}(:),ry{i}(:),'.')
 end
 title('Usuarios de cada estacion base considerando únicamente la distancia')
-
-% Grafica con usuarios dispersos
-figure(2)
+figure()
 subplot(2,1,1)
 for i=7:-1:1
 plot(x(i,:),y(i,:),'LineWidth',2)
@@ -73,12 +63,11 @@ plot(Usuarios_ordenados{i}(:,1),Usuarios_ordenados{i}(:,2),'.')
 end
 title({'Usuarios de cada estacion base considerando la potencia recibida por el modelo lognormal';'Considerando \alpha = 10'})
 
-% Grafica con usuarios dispersos
 subplot(2,1,2)
 for i=7:-1:1
-    plot(x(i,:),y(i,:),'LineWidth',2)
-    grid on
-    hold on
+plot(x(i,:),y(i,:),'LineWidth',2)
+grid on
+hold on
 end
 plot(Usuarios_ordenados{1}(:,1),Usuarios_ordenados{1}(:,2),'.')
 title({'Usuarios de la estacion base central considerando la potencia recibida por el modelo lognormal';'Considerando \alpha = 10'})

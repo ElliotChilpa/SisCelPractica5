@@ -11,14 +11,17 @@ b = 0;
 c = 3;
 d = input("Ingresa la cantidad de usuarios por hexágono: ");
 
-% Parámetros del sistema
+% Exponente de perdidas por distancia
 alpha = 10;
-apotema = sqrt(3) * c / 2;
+
+% Variable desviacion estandar de perdidas por ensobrecimiento "Variable aleatoria"
 desvia = 7;
+ad = makedist('Normal', 'mu', 0, 'sigma', desvia);
 
-%ad = makedist('Normal', 'mu', 0, 'sigma', desvia);
+% Calculo del apotema del hexagono
+apotema = (sqrt(3) * c) / 2;
 
-% Dibujar el hexágono central y los hexágonos alrededor
+% Función hexágono central y los hexágonos alrededor
 [x, y, rx, ry, centers] = DibujarHexagonos_y_usuarios(a, b, c, d);
 
 % Graficar los hexágonos y los usuarios
@@ -51,6 +54,7 @@ function [vectores_x, vectores_y, randomx, randomy, centers] = DibujarHexagonos_
         a + 2 * apotema * cosd(330), b + 2 * apotema * sind(330)
     ];
 
+    
     vectores_x = cell(1, 7);
     vectores_y = cell(1, 7);
     randomx = cell(1, 7);
