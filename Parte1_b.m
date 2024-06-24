@@ -61,10 +61,10 @@ for i = 1:7
 end
 Usuarios_ordenados{7}(1, :) = [];
 
-% Seleccionar 5 usuarios aleatorios para resaltar
-total_usuarios = [cat(1, rx{:}), cat(1, ry{:})];
+% Selección de 5 usuarios aleatorios del total
+total_usuarios = vertcat(Usuarios_ordenados{:});
 indices_aleatorios = randperm(size(total_usuarios, 1), 5);
-usuarios_destacados = total_usuarios(indices_aleatorios, :);
+usuarios_resaltados = total_usuarios(indices_aleatorios, 1:2);
 
 % Gráfica de los hexágonos y usuarios
 figure(1)
@@ -74,8 +74,6 @@ for i = 7:-1:1
     hold on
     plot(rx{i}(:), ry{i}(:), '.')
 end
-% Resaltar usuarios aleatorios seleccionados
-plot(usuarios_destacados(:, 1), usuarios_destacados(:, 2), 'ro', 'MarkerSize', 10, 'LineWidth', 2)
 title('Usuarios de cada estación base considerando únicamente la distancia')
 
 % Gráfica con usuarios dispersos
@@ -87,6 +85,7 @@ for i = 7:-1:1
     hold on
     plot(Usuarios_ordenados{i}(:, 1), Usuarios_ordenados{i}(:, 2), '.')
 end
+plot(usuarios_resaltados(:, 1), usuarios_resaltados(:, 2), 'ro', 'MarkerSize', 10, 'LineWidth', 2)
 title({'Usuarios de cada estación base considerando la potencia recibida por el modelo lognormal'; 'Considerando \alpha = 10'})
 
 % Gráfica con usuarios de la estación base central
