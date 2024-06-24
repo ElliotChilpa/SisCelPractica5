@@ -42,20 +42,22 @@ for i = 1:7
                 baux = 2 * apotema * sind(60 * (z - 2) + 30);
                 d = sqrt((rx{i}(j) - (a + aaux))^2 + (ry{i}(j) - (b + baux))^2) * 1000;
             end
+            % Asignar una pérdida por ensombrecimiento a cada usuario
+            Omega_i_k = random(ad);
             % Cálculo de la pérdida
-            L_i_k = 10 * alpha * log10(d) + random(ad);
+            L_i_k = 10 * alpha * log10(d) + Omega_i_k;
             % Cálculo de la potencia
             Potencias{i}(j, z) = suma_para_Ptotal - L_i_k;
         end
     end
 end
 
-% Ordenar usuarios según la potencia recibida
+% Asociar usuarios a la estación base que proporciona la mayor potencia
 Usuarios_ordenados = cell(1, 7);
 p = length(rx{1});
 for i = 1:7
     for j = 1:p
-        [P_min, zz] = max(Potencias{i}(j, :));
+        [P_max, zz] = max(Potencias{i}(j, :));
         Usuarios_ordenados{zz}(end + 1, 1:9) = [rx{i}(j) ry{i}(j) Potencias{i}(j, :)];
     end
 end
