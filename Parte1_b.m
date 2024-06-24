@@ -79,6 +79,10 @@ total_usuarios = vertcat(Usuarios_ordenados{:});
 indices_aleatorios = randperm(size(total_usuarios, 1), 5);
 usuarios_resaltados = total_usuarios(indices_aleatorios, 1:2);
 
+% Definir colores para los hexágonos
+colores = {'r', 'g', 'b', 'c', 'm', 'y', 'k'};
+nombre_colores = {'rojo', 'verde', 'azul', 'cian', 'magenta', 'amarillo', 'negro'};
+
 % Imprimir la información de los usuarios seleccionados
 for i = 1:length(indices_aleatorios)
     usuario_idx = indices_aleatorios(i);
@@ -91,11 +95,8 @@ for i = 1:length(indices_aleatorios)
         end
     end
     [~, base_asociada] = max(total_usuarios(usuario_idx, 3:end));
-    fprintf('Base Asociada: %d\n\n', base_asociada);
+    fprintf('Base Asociada: %d (Color: %s)\n\n', base_asociada, nombre_colores{base_asociada});
 end
-
-% Definir colores para los hexágonos
-colores = {'r', 'g', 'b', 'c', 'm', 'y', 'k'};
 
 % Gráfica de los hexágonos y usuarios
 figure(1)
