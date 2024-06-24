@@ -29,6 +29,11 @@ ad = makedist('Normal', 'mu', 0, 'sigma', desvia);
 % Suma de potencias para cálculo total
 suma_para_Ptotal = P_tx + G_tx + G_rx;
 
+% Variables para almacenar los datos de cada usuario
+Distancias = cell(1, 7);
+Omega = cell(1, 7);
+L_i_k = cell(1, 7);
+
 % Cálculo de potencias de los usuarios en cada celda
 for i = 1:7
     for j = 1:length(rx{i})
@@ -45,9 +50,12 @@ for i = 1:7
             % Asignar una pérdida por ensombrecimiento a cada usuario
             Omega_i_k = random(ad);
             % Cálculo de la pérdida
-            L_i_k = 10 * alpha * log10(d) + Omega_i_k;
+            L_i_k{i}(j, z) = 10 * alpha * log10(d) + Omega_i_k;
             % Cálculo de la potencia
-            Potencias{i}(j, z) = suma_para_Ptotal - L_i_k;
+            Potencias{i}(j, z) = suma_para_Ptotal - L_i_k{i}(j, z);
+            % Almacenar la distancia y la pérdida por ensombrecimiento
+            Distancias{i}(j, z) = d;
+            Omega{i}(j, z) = Omega_i_k;
         end
     end
 end
@@ -55,10 +63,13 @@ end
 % Asociar usuarios a la estación base que proporciona la mayor potencia
 Usuarios_ordenados = cell(1, 7);
 p = length(rx{1});
+Base_asociada = cell(1, 7);
+
 for i = 1:7
     for j = 1:p
         [P_max, zz] = max(Potencias{i}(j, :));
         Usuarios_ordenados{zz}(end + 1, 1:9) = [rx{i}(j) ry{i}(j) Potencias{i}(j, :)];
+        Base_asociada{i}(j) = zz;
     end
 end
 Usuarios_ordenados{7}(1, :) = [];
@@ -67,6 +78,21 @@ Usuarios_ordenados{7}(1, :) = [];
 total_usuarios = vertcat(Usuarios_ordenados{:});
 indices_aleatorios = randperm(size(total_usuarios, 1), 5);
 usuarios_resaltados = total_usuarios(indices_aleatorios, 1:2);
+
+% Imprimir la información de los usuarios seleccionados
+for i = 1:length(indices_aleatorios)
+    usuario_idx = indices_aleatorios(i);
+    fprintf('Usuario %d\n', usuario_idx);
+    fprintf('-------------------------\n');
+    fprintf('Estación Base\tDistancia (m)\tPérdida Ensombrecimiento (dB)\tPérdida Total (dB)\n');
+    for k = 1:7
+        if ~isempty(find(Usuarios_ordenados{k}(:, 1) == total_usuarios(usuario_idx, 1) & Usuarios_ordenados{k}(:, 2) == total_usuarios(usuario_idx, 2), 1))
+            fprintf('%d\t\t%.2f\t\t%.2f\t\t\t%.2f\n', k, Distancias{k}(usuario_idx), Omega{k}(usuario_idx), L_i_k{k}(usuario_idx));
+        end
+    end
+    [~, base_asociada] = max(total_usuarios(usuario_idx, 3:end));
+    fprintf('Base Asociada: %d\n\n', base_asociada);
+end
 
 % Gráfica de los hexágonos y usuarios
 figure(1)
