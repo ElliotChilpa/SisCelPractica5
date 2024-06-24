@@ -9,7 +9,7 @@ c = input("Ingresa el valor del lado del hexagono (km): "); % Valor del lado del
 n_usuarios = input("Ingresa la cantidad de usuarios por celda: "); % Cantidad de usuarios por celda
 
 % Exponente de pérdidas por distancia
-alpha = 10;
+alpha = 10; % Aquí se define el valor de α, ajusta este valor según sea necesario
 
 % Cálculo de apotema de los hexágonos
 apotema = (sqrt(3) * c) / 2;
